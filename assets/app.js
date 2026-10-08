@@ -6,16 +6,15 @@
   var toast = document.getElementById('toast');
   var toastTimer;
 
-  // 접수폼 주소는 https 만 허용 (http, javascript: 등은 무시)
+  // 접수폼 주소는 https 만 허용 (http, javascript: 등은 무시하고 콘솔에 경고)
   function safeUrl(value) {
     if (typeof value !== 'string' || !value.trim()) return null;
     try {
       var url = new URL(value.trim());
-      return url.protocol === 'https:' ? url.href : null;
-    } catch (e) {
-      if (window.console) console.warn('[config.js] 올바른 주소(https://...)가 아닙니다:', value);
-      return null;
-    }
+      if (url.protocol === 'https:') return url.href;
+    } catch (e) { /* 아래에서 경고 */ }
+    if (window.console) console.warn('[config.js] https:// 로 시작하는 올바른 주소만 사용할 수 있습니다:', value);
+    return null;
   }
 
   function showToast(message) {
@@ -25,7 +24,7 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () {
       toast.classList.remove('is-visible');
-    }, 3200);
+    }, 6000);
   }
 
   var cards = document.querySelectorAll('a[data-reg]');
@@ -43,7 +42,7 @@
       card.classList.add('is-pending');
       card.addEventListener('click', function (event) {
         event.preventDefault();
-        showToast('접수 링크는 추후 안내드릴 예정입니다. 잠시만 기다려 주세요.');
+        showToast('사전신청 접수 링크는 추후 안내할 예정입니다.');
       });
     }
   });
