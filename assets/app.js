@@ -6,13 +6,18 @@
   var toast = document.getElementById('toast');
   var toastTimer;
 
-  // 접수폼 주소는 https 만 허용 (http, javascript: 등은 무시하고 콘솔에 경고)
+  // 도메인 형태(점으로 구분된 호스트명) 검사. 한글 도메인은 url.hostname 에서 punycode 로 변환됨
+  var HOST_RE = /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z0-9-]{2,}$/i;
+
+  // 접수폼 주소는 https 만 허용 (http, javascript:, 자리표시자 "https://..." 등은 무시하고 콘솔에 경고)
   function safeUrl(value) {
-    if (typeof value !== 'string' || !value.trim()) return null;
-    try {
-      var url = new URL(value.trim());
-      if (url.protocol === 'https:') return url.href;
-    } catch (e) { /* 아래에서 경고 */ }
+    if (value == null || (typeof value === 'string' && !value.trim())) return null;  // 값 없음: 조용히 '준비 중'
+    if (typeof value === 'string' && !/\s/.test(value.trim())) {                      // 중간 공백·줄바꿈이 있으면 거부
+      try {
+        var url = new URL(value.trim());
+        if (url.protocol === 'https:' && HOST_RE.test(url.hostname)) return url.href;
+      } catch (e) { /* 아래에서 경고 */ }
+    }
     if (window.console) console.warn('[config.js] https:// 로 시작하는 올바른 주소만 사용할 수 있습니다:', value);
     return null;
   }
@@ -24,6 +29,8 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () {
       toast.classList.remove('is-visible');
+      // 페이드아웃(.2s) 후 문구를 비워, 사라진 안내가 보조기기에 남지 않게 함
+      toastTimer = setTimeout(function () { toast.textContent = ''; }, 300);
     }, 6000);
   }
 
